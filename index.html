@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM GPS - Position Tech (V12)</title>
+
+  <!-- Evita 404 del favicon (data URI simple) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%9A%97%3C/text%3E%3C/svg%3E">
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --accent: #27ae60;
+      --sunat: #3498db;
+      --bg: #f4f6f7;
+      --warn: #e67e22;
+      --danger: #c0392b;
+      --muted: #7f8c8d;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      padding: 20px;
+      color: #333;
+    }
+   .small {
+    font-size: 0.78em;
+    color: #777;
+    margin-top: 6px;
+    line-height: 1.2;
+   }
+
+    .container {
+      max-width: 1350px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin: 10px 0 20px;
+    }
+
+    fieldset {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      padding: 15px;
+      background: #fff;
+    }
+
+    legend {
+      font-weight: 800;
+      color: var(--primary);
+      padding: 0 5px;
+      font-size: 1.05em;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82em;
+      margin-bottom: 6px;
+      font-weight: 800;
+      color: #555;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 9px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .row-flex {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    /* Botones */
+    button {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: 0.2s;
+    }
+
+    .btn-save {
+      background-color: var(--primary);
+      color: white;
+      width: 100%;
+      font-size: 1.05em;
+    }
+
+    .btn-secondary {
+      background: var(--muted);
+      color: white;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .btn-audio {
+      background-color: var(--sunat);
+      color: white;
+      width: 100%;
+      margin-bottom: 18px;
+      padding: 15px;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-5px);
+      }
+    }
+
+    .btn-sunat {
+      background-color: var(--sunat);
+      color: white;
+      padding: 9px 12px;
+      font-size: 0.9em;
+      width: auto;
+      margin-top: 0;
+      white-space: nowrap;
+    }
+
+    .btn-sunat:hover {
+      background-color: #2980b9;
+    }
+
+    /* Panel KPI */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin: 10px 0 18px;
+    }
+
+    .kpi {
+      background: #fff;
+      border: 1px solid #e7e7e7;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .kpi .label {
+      font-size: 0.82em;
+      color: #666;
+      font-weight: 800;
+    }
+
+    .kpi .value {
+      font-size: 1.4em;
+      font-weight: 900;
+      color: var(--primary);
+      margin-top: 4px;
+    }
+
+    /* Filtros */
+    .filters {
+      display: grid;
+      grid-template-columns: 2fr repeat(4, 1fr);
+      gap: 10px;
+      margin: 15px 0;
+      align-items: end;
+    }
+
+    @media (max-width: 900px) {
+      .filters {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Tabla */
+    .table-responsive {
+      overflow-x: auto;
+      margin-top: 12px;
+      border-top: 3px solid var(--primary);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86em;
+      background: white;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 0.92em;
+      background: #f2f2f2;
+    }
+
+    /* Acciones */
+    .action-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .icon-btn {
+      padding: 7px 9px;
+      border-radius: 8px;
+      font-weight: 900;
+      font-size: 0.9em;
+      color: white;
+    }
+
+    .b-edit { background: var(--warn); }
+    .b-hist { background: #8e44ad; }
+    .b-del { background: var(--danger); }
+    .b-wa { background: #25D366; }
+    .b-call { background: #16a085; }
+    .b-cal { background: #34495e; }
+
+    /* Modales */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 5% auto;
+      padding: 20px;
+      width: 90%;
+      max-width: 650px;
+      border-radius: 10px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .close {
+      float: right;
+      font-size: 28px;
+      cursor: pointer;
+    }
+
+    .timeline-item {
+      border-left: 3px solid #ccc;
+      padding-left: 15px;
+      margin-bottom: 16px;
+    }
+
+    /* Alarma */
+    .alarm-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .alarm-content {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      text-align: center;
+      animation: pulse 1s infinite;
+      max-width: 520px;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    #status-indicator {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      font-size: 12px;
+      background: white;
+      padding: 6px 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+      z-index: 3000;
+    }
+
+    .hint {
+      font-size: 0.8em;
+      color: #777;
+      margin-top: 6px;
+    }
+
+    .danger-box {
+      background: #fff5f5;
+      padding: 10px;
+      border: 1px dashed var(--danger);
+      border-radius: 8px;
+    }
+
+    .hide { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="status-indicator">⚪ Conectando...</div>
+    <button id="btnEnableAudio" class="btn-audio" onclick="enableAudio()">🔊 CLIC AQUÍ PARA ACTIVAR ALERTAS</button>
+
+    <h1>☁️ CRM GPS (Prospectos + Clientes)</h1>
+<div style="display:flex; justify-content:flex-end; margin: 8px 0 14px;">
+  <button type="button" class="btn-secondary" onclick="resetForm()" style="width:auto;">
+    🧹 Limpiar formulario
+  </button>
+</div>
+
+
+    <form id="clientForm">
+      <input type="hidden" id="clientId" />
+
+      <fieldset>
+        <legend>🟢 1. Datos Generales (RUC)</legend>
+        <div class="form-grid">
+          <div class="row-flex" style="grid-column: span 2;">
+            <div style="flex: 1;">
+              <label>RUC (11 dígitos):</label>
+              <input
+  type="text"
+  id="ruc"
+  inputmode="numeric"
+  placeholder="Escriba el RUC aquí"
+  oninput="onRucTyping()"
+  style="width:100%; max-width:320px; font-weight:800; letter-spacing:2px;"
+
+/>
+
+              <div class="hint">Tip: puede escribir y luego presionar “Buscar Datos”.</div>
+            </div>
+            <button type="button" class="btn-sunat" id="btnSunat" onclick="consultarRUC()">🔍 Buscar Datos</button>
+	    <button type="button" class="btn-secondary" onclick="copiarMensajeWA()" style="width:auto; white-space:nowrap;">
+            📋 Copiar mensaje WhatsApp
+            </button>
+
+
+          </div>
+
+          <div>
+            <label>Empresa (Razón Social):</label>
+            <input type="text" id="empresa" required placeholder="Se llenará automáticamente si consulta RUC..." />
+          </div>
+          <div>
+            <label>Dirección Fiscal:</label>
+            <input type="text" id="direccion" placeholder="Se llenará automáticamente si consulta RUC..." />
+          </div>
+
+          <div>
+            <label>Contacto:</label>
+            <input type="text" id="contacto" placeholder="Nombre y apellido" />
+          </div>
+          <div>
+            <label>Cargo:</label>
+            <input type="text" id="cargo" placeholder="Ej.: Jefe de Operaciones" />
+          </div>
+          <div>
+            <label>Teléfono / WhatsApp:</label>
+            <input type="text" id="telefono" placeholder="Solo números" />
+          </div>
+          <div>
+            <label>Ciudad:</label>
+            <input type="text" id="ciudad" placeholder="Ej.: Lima" />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>🔵 2. Información de Flota</legend>
+        <div class="form-grid">
+          <div><label>Rubro:</label><input type="text" id="rubro" /></div>
+          <div><label>Cant. Unidades:</label><input type="number" id="cantidad" min="0" /></div>
+          <div>
+            <label>Tipo Flota:</label>
+            <select id="tipoFlota">
+              <option value="Camión">Camión</option>
+              <option value="Bus">Bus</option>
+              <option value="Mixto">Mixto</option>
+              <option value="Utilitario">Utilitario</option>
+              <option value="Maquinaria">Maquinaria</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label>¿Tiene Monitoreo?</label>
+            <select id="tieneMonitoreo" onchange="toggleProveedorFields()">
+              <option value="No">No</option>
+              <option value="Sí">Sí</option>
+            </select>
+          </div>
+
+          <div id="proveedorWrap" class="hide">
+            <label>Proveedor actual:</label>
+            <input type="text" id="proveedorActual" placeholder="Ej.: Empresa X" />
+          </div>
+          <div id="incomodidadWrap" class="hide">
+            <label>¿Qué le incomoda del proveedor actual?</label>
+            <input type="text" id="incomodidadProveedor" placeholder="Ej.: soporte lento / reportes / precio" />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>🟡 3. Seguimiento</legend>
+        <div class="form-grid">
+          <div>
+            <label>Tipo de registro:</label>
+            <select id="tipoRegistro">
+              <option value="Prospecto">Prospecto</option>
+              <option value="Cliente activo">Cliente activo</option>
+            </select>
+          </div>
+          <div>
+            <label>Responsable:</label>
+            <input type="text" id="responsable" placeholder="Ej.: Juan / Equipo Ventas" />
+          </div>
+          <div>
+            <label>Estado actual:</label>
+            <select id="estadoActual" required>
+              <option value="⚪ Sin respuesta">⚪ Sin respuesta</option>
+              <option value="🟢 Interesado">🟢 Interesado</option>
+              <option value="🟡 En evaluación">🟡 En evaluación</option>
+              <option value="🔴 No interesado">🔴 No interesado</option>
+              <option value="🔵 Ya tiene proveedor">🔵 Ya tiene proveedor</option>
+              <option value="🏆 CLIENTE CONCRETADO">🏆 CLIENTE CONCRETADO</option>
+            </select>
+          </div>
+
+          <div class="full-width">
+            <label>Observaciones:</label>
+            <input type="text" id="observaciones" placeholder="Nota del día..." />
+          </div>
+
+          <div class="full-width danger-box">
+            <label style="color: var(--danger);">🔔 Alarma sonora (recordatorio):</label>
+            <input type="datetime-local" id="fechaAlarma" />
+            <div class="hint">La alarma es un recordatorio. El “próximo contacto” se define en la sección 4.</div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>🟠 4. Acción Comercial</legend>
+        <div class="form-grid">
+          <div>
+            <label>Próximo paso:</label>
+            <select id="proximoPaso">
+              <option value="">— Seleccionar —</option>
+              <option value="Enviar mensaje inicial">Enviar mensaje inicial</option>
+              <option value="Enviar información por WhatsApp">Enviar información por WhatsApp</option>
+              <option value="Agendar reunión">Agendar reunión</option>
+              <option value="Llamada de seguimiento">Llamada de seguimiento</option>
+              <option value="Enviar propuesta">Enviar propuesta</option>
+              <option value="Cierre / contrato">Cierre / contrato</option>
+            </select>
+          </div>
+          <div>
+            <label>Fecha de próximo contacto:</label>
+            <input type="date" id="proximoContacto" />
+          </div>
+          <div class="full-width">
+            <label>Detalle del próximo paso (opcional):</label>
+            <input type="text" id="detallePaso" placeholder="Ej.: enviar precios por 10 unidades / coordinar Teams" />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>🟣 5. Resultado</legend>
+        <div class="form-grid">
+          <div>
+            <label>Resultado:</label>
+            <select id="resultado">
+              <option value="⏳ Pendiente">⏳ Pendiente</option>
+              <option value="✅ Propuesta enviada">✅ Propuesta enviada</option>
+              <option value="❌ Cerrado/No">❌ Cerrado/No</option>
+            </select>
+          </div>
+          <div>
+            <label>Observación de resultado (opcional):</label>
+            <input type="text" id="obsResultado" placeholder="Ej.: esperando respuesta / enviar contrato" />
+          </div>
+        </div>
+      </fieldset>
+
+      <button type="button" class="btn-save" id="btnMain" onclick="saveClient()">💾 Guardar en la nube
+</button>
+      
+    </form>
+
+    <!-- KPIs -->
+    <div class="kpis" id="kpiPanel">
+      <div class="kpi"><div class="label">Total</div><div class="value" id="kpiTotal">0</div></div>
+      <div class="kpi"><div class="label">⚪ Sin respuesta</div><div class="value" id="kpiSinRespuesta">0</div></div>
+      <div class="kpi"><div class="label">🟢 Interesados</div><div class="value" id="kpiInteresados">0</div></div>
+      <div class="kpi"><div class="label">🟡 En evaluación</div><div class="value" id="kpiEvaluacion">0</div></div>
+      <div class="kpi"><div class="label">✅ Propuesta enviada</div><div class="value" id="kpiPropuesta">0</div></div>
+      <div class="kpi"><div class="label">🔔 Con alarma</div><div class="value" id="kpiAlarma">0</div></div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters">
+      <div>
+        <label>Buscar (empresa / RUC / ciudad / contacto):</label>
+        <input type="text" id="searchText" placeholder="Escriba para filtrar..." oninput="applyFilters()" />
+      </div>
+      <div>
+        <label>Estado:</label>
+        <select id="filterEstado" onchange="applyFilters()">
+          <option value="">Todos</option>
+          <option value="⚪ Sin respuesta">⚪ Sin respuesta</option>
+          <option value="🟢 Interesado">🟢 Interesado</option>
+          <option value="🟡 En evaluación">🟡 En evaluación</option>
+          <option value="🔴 No interesado">🔴 No interesado</option>
+          <option value="🔵 Ya tiene proveedor">🔵 Ya tiene proveedor</option>
+          <option value="🏆 CLIENTE CONCRETADO">🏆 CLIENTE CONCRETADO</option>
+        </select>
+      </div>
+      <div>
+        <label>Resultado:</label>
+        <select id="filterResultado" onchange="applyFilters()">
+          <option value="">Todos</option>
+          <option value="⏳ Pendiente">⏳ Pendiente</option>
+          <option value="✅ Propuesta enviada">✅ Propuesta enviada</option>
+          <option value="❌ Cerrado/No">❌ Cerrado/No</option>
+        </select>
+      </div>
+      <div>
+        <label>Tipo:</label>
+        <select id="filterTipo" onchange="applyFilters()">
+          <option value="">Todos</option>
+          <option value="Prospecto">Prospecto</option>
+          <option value="Cliente activo">Cliente activo</option>
+        </select>
+      </div>
+      <div>
+        <label>Alarma:</label>
+        <select id="filterAlarma" onchange="applyFilters()">
+          <option value="">Todas</option>
+          <option value="con">Con alarma</option>
+          <option value="sin">Sin alarma</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Responsable (filtro):</label>
+        <input type="text" id="filterResponsable" placeholder="Ej.: María / Juan" oninput="applyFilters()" />
+      </div>
+
+      <div>
+        <label>Solo mis registros:</label>
+        <select id="filterMine" onchange="applyFilters()">
+          <option value="">No</option>
+          <option value="si">Sí</option>
+        </select>
+        <div class="small">Tip: defina su nombre en “Mi nombre”.</div>
+      </div>
+
+      <div>
+        <label>Mi nombre (equipo):</label>
+        <input type="text" id="myName" placeholder="Su nombre" />
+        <button type="button" class="btn-secondary" style="margin-top:8px" onclick="saveMyName()">💾 Guardar</button>
+      </div>
+
+      <div>
+        <label>Exportar:</label>
+        <button type="button" class="btn-secondary" onclick="exportCSV()">⬇️ Exportar CSV (filtrado)</button>
+        <div class="small">Exporta exactamente lo que está viendo en la tabla.</div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table id="clientsTable">
+        <thead>
+          <tr>
+            <th>Acciones</th>
+            <th>Empresa / RUC</th>
+            <th>Tipo</th>
+            <th>Responsable</th>
+            <th>Estado</th>
+            <th>Resultado</th>
+            <th>Próximo contacto</th>
+            <th>Alarma</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="historyModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeHistory()">&times;</span>
+      <h2>📜 Historial</h2>
+      <div id="timelineContainer"></div>
+    </div>
+  </div>
+
+  <div id="activeAlarmModal" class="alarm-modal">
+    <div class="alarm-content">
+      <h1>⏰</h1>
+      <h2 style="color: var(--danger);">¡Recordatorio!</h2>
+      <h3 id="alarmMessage">Cliente</h3>
+      <p class="hint" id="alarmHint"></p>
+      <button onclick="stopAlarm()" style="background: var(--accent); color: white; padding: 15px;">✅ Entendido</button>
+    </div>
+  </div>
+
+  <script>
+    // =============================
+    // Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCt4UEogfD1j-q-hH_VJokbNH51fx_wDtg",
+      authDomain: "crm-dianet.firebaseapp.com",
+      databaseURL: "https://crm-dianet-default-rtdb.firebaseio.com",
+      projectId: "crm-dianet",
+      storageBucket: "crm-dianet.firebasestorage.app",
+      messagingSenderId: "1062058955560",
+      appId: "1:1062058955560:web:eb51c4ef892c01fdf8f61d"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Sistema
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+    let oscillator = null;
+    let alarmInterval;
+
+    let rawData = null;
+    let filteredList = [];
+    let lastRuc = '';
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const status = document.getElementById('status-indicator');
+
+      db.ref('clientes').on('value', (snapshot) => {
+        status.innerText = '🟢 Conectado';
+        status.style.color = 'green';
+        rawData = snapshot.val() || null;
+        refreshUI();
+        checkAlarms(rawData);
+      }, () => {
+        status.innerText = '🔴 Desconectado';
+        status.style.color = 'red';
+      });
+
+      alarmInterval = setInterval(() => {
+        db.ref('clientes').once('value', snapshot => checkAlarms(snapshot.val()));
+      }, 10000);
+
+      toggleProveedorFields();
+
+      // Equipo: cargar "Mi nombre" guardado localmente
+      const savedName = localStorage.getItem('crm_my_name') || '';
+      if (savedName) {
+        document.getElementById('myName').value = savedName;
+      }
+    });
+
+    function saveMyName() {
+      const name = String(document.getElementById('myName').value || '').trim();
+      localStorage.setItem('crm_my_name', name);
+      alert('✅ Guardado. Ahora puede usar “Solo mis registros”.');
+      applyFilters();
+    }
+
+    function normalizeText(s) {
+      return String(s || '').toLowerCase().trim();
+    }
+
+    function onlyDigits(s) {
+      return String(s || '').replace(/\D/g, '');
+    }
+
+    function toggleProveedorFields() {
+      const tiene = document.getElementById('tieneMonitoreo').value;
+      const p = document.getElementById('proveedorWrap');
+      const i = document.getElementById('incomodidadWrap');
+      const show = (tiene === 'Sí');
+      p.classList.toggle('hide', !show);
+      i.classList.toggle('hide', !show);
+      if (!show) {
+        document.getElementById('proveedorActual').value = '';
+        document.getElementById('incomodidadProveedor').value = '';
+      }
+    }
+
+    // =============================
+// SUNAT RUC (via Netlify Function - Decolecta)
+async function consultarRUC() {
+  const ruc = onlyDigits(document.getElementById('ruc').value);
+  const btn = document.getElementById('btnSunat');
+
+ if (ruc.length !== 11) {
+  alert('⚠️ El RUC debe tener 11 dígitos.');
+  return;
+}
+
+// 🔒 Evitar consultas innecesarias (ahorro de créditos)
+const empresaActual = document.getElementById('empresa').value.trim();
+if (empresaActual) {
+  const continuar = confirm('Este RUC ya tiene datos cargados.\n\n¿Desea volver a consultar igualmente?');
+  if (!continuar) return;
+}
+
+// ✅ recién aquí fijamos el último RUC confirmado
+lastRuc = ruc;
+
+
+
+  btn.innerText = '⏳ Consultando...';
+  btn.disabled = true;
+
+  const fillFromDecolecta = (data) => {
+    // ✅ Mapeo correcto para Decolecta
+    document.getElementById('empresa').value = data.razon_social || '';
+    document.getElementById('direccion').value = data.direccion || '';
+
+    // “Ciudad” en tu formulario (puede ser dpto o distrito; aquí uso departamento)
+    const distrito = data.distrito || '';
+const provincia = data.provincia || '';
+document.getElementById('ciudad').value =
+  distrito && provincia ? `${distrito} - ${provincia}` : (distrito || provincia || '');
+
+
+    // Rubro: Decolecta puede devolver actividad_economica (si no existe, no tocamos)
+    if (data.actividad_economica) {
+      document.getElementById('rubro').value = data.actividad_economica;
+    }
+
+    // Mensaje sin “token vencido” (más elegante)
+    const empresa = data.razon_social || 'No disponible';
+    const estado = data.estado || 'No disponible';
+    const condicion = data.condicion || '-';
+
+    if (estado === 'ACTIVO') {
+      alert(`✅ Datos encontrados:\nEmpresa: ${empresa}\nEstado: ${estado}`);
+    } else {
+      alert(`⚠️ Datos encontrados:\nEmpresa: ${empresa}\nEstado: ${estado}\nCondición: ${condicion}`);
+    }
+  };
+
+  const doFetch = async () => {
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyk4n-zFzsd13FIBHbno-lw09sot_OVItnXa7G8Ttg-EZVXFLn3OxOmVX3UKGJqsXNT/exec";
+
+const resp = await fetch(`${GAS_URL}?ruc=${encodeURIComponent(ruc)}`);
+
+    const json = await resp.json().catch(() => ({ ok: false, error: 'Respuesta inválida del servidor.' }));
+    if (!json.ok) throw new Error(json.error || 'No se pudo obtener datos automáticos.');
+    return json.data;
+  };
+
+  try {
+    const data = await doFetch();
+    fillFromDecolecta(data);
+
+  } catch (err) {
+    console.error(err);
+
+    const retry = confirm('No se pudo obtener datos automáticos.\n\n¿Desea reintentar?');
+    if (retry) {
+      try {
+        const data2 = await doFetch();
+        fillFromDecolecta(data2);
+      } catch (err2) {
+        console.error(err2);
+        const manual = confirm('No se pudo obtener datos automáticos.\n\n¿Desea abrir SUNAT para consultarlo manualmente?');
+        if (manual) window.open('https://e-consultaruc.sunat.gob.pe/cl-ti-itmrconsruc/jcrS00Alias', '_blank');
+      }
+    } else {
+      const manual = confirm('¿Desea abrir SUNAT para consultarlo manualmente?');
+      if (manual) window.open('https://e-consultaruc.sunat.gob.pe/cl-ti-itmrconsruc/jcrS00Alias', '_blank');
+    }
+
+  } finally {
+    btn.innerText = '🔍 Buscar Datos';
+    btn.disabled = false;
+  }
+}
+
+
+    // =============================
+    // Guardar / Editar
+    function validateForm() {
+      const empresa = normalizeText(document.getElementById('empresa').value);
+      if (!empresa) {
+        alert('⚠️ Falta Empresa (Razón Social).');
+        return false;
+      }
+
+      // Teléfono: solo números y mínimo 9 si se ingresa
+      const tel = onlyDigits(document.getElementById('telefono').value);
+      if (tel && tel.length < 9) {
+        alert('⚠️ El teléfono debe tener al menos 9 dígitos (solo números).');
+        return false;
+      }
+      document.getElementById('telefono').value = tel;
+
+      // Cantidad: si hay empresa, exigir unidades (como pidió)
+      const cant = document.getElementById('cantidad').value;
+      if (cant === '' || Number(cant) < 0) {
+        alert('⚠️ Por favor indique la cantidad de unidades.');
+        return false;
+      }
+
+      return true;
+    }
+
+    function getFormData() {
+      return {
+        ruc: onlyDigits(document.getElementById('ruc').value),
+        empresa: document.getElementById('empresa').value.trim(),
+        direccion: document.getElementById('direccion').value.trim(),
+        contacto: document.getElementById('contacto').value.trim(),
+        cargo: document.getElementById('cargo').value.trim(),
+        telefono: onlyDigits(document.getElementById('telefono').value),
+        ciudad: document.getElementById('ciudad').value.trim(),
+
+        rubro: document.getElementById('rubro').value.trim(),
+        cantidad: document.getElementById('cantidad').value,
+        tipoFlota: document.getElementById('tipoFlota').value,
+        tieneMonitoreo: document.getElementById('tieneMonitoreo').value,
+        proveedorActual: document.getElementById('proveedorActual').value.trim(),
+        incomodidadProveedor: document.getElementById('incomodidadProveedor').value.trim(),
+
+        tipoRegistro: document.getElementById('tipoRegistro').value,
+        responsable: document.getElementById('responsable').value.trim(),
+        estadoActual: document.getElementById('estadoActual').value,
+        observaciones: document.getElementById('observaciones').value.trim(),
+        fechaAlarma: document.getElementById('fechaAlarma').value,
+
+        proximoPaso: document.getElementById('proximoPaso').value,
+        proximoContacto: document.getElementById('proximoContacto').value,
+        detallePaso: document.getElementById('detallePaso').value.trim(),
+
+        resultado: document.getElementById('resultado').value,
+        obsResultado: document.getElementById('obsResultado').value.trim(),
+
+        timestamp: Date.now()
+      };
+    }
+
+    function buildLogEntry(currentData) {
+      return {
+        fecha: new Date().toLocaleString(),
+        estado: currentData.estadoActual,
+        obs: currentData.observaciones,
+        tipoRegistro: currentData.tipoRegistro,
+        resultado: currentData.resultado,
+        proximoPaso: currentData.proximoPaso,
+        proximoContacto: currentData.proximoContacto,
+        detallePaso: currentData.detallePaso,
+        alarma: currentData.fechaAlarma,
+        responsable: currentData.responsable
+      };
+    }
+
+    function saveClient() {
+      if (!validateForm()) return;
+
+      const idField = document.getElementById('clientId').value;
+      const currentData = getFormData();
+      const newLog = buildLogEntry(currentData);
+
+      if (idField) {
+        db.ref('clientes/' + idField).once('value').then(snapshot => {
+          const oldData = snapshot.val() || {};
+          let history = oldData.historial || [];
+          history.push(newLog);
+
+          db.ref('clientes/' + idField).update({
+            ...currentData,
+            historial: history,
+            alarmaSonada: false
+          }).then(() => {
+            alert('✅ Actualizado');
+            resetForm();
+          });
+        });
+      } else {
+        const newData = { ...currentData, historial: [newLog], alarmaSonada: false };
+        db.ref('clientes').push(newData).then(() => {
+          alert('✅ Guardado');
+          resetForm();
+        });
+      }
+    }
+
+    // =============================
+    // Render / filtros
+    function refreshUI() {
+      applyFilters();
+      updateKpis(rawData);
+    }
+
+    function applyFilters() {
+      const q = normalizeText(document.getElementById('searchText').value);
+      const fEstado = document.getElementById('filterEstado').value;
+      const fResultado = document.getElementById('filterResultado').value;
+      const fTipo = document.getElementById('filterTipo').value;
+      const fAlarma = document.getElementById('filterAlarma').value;
+      const fResp = normalizeText(document.getElementById('filterResponsable').value);
+      const fMine = document.getElementById('filterMine').value;
+      const myName = normalizeText(localStorage.getItem('crm_my_name') || '');
+
+      if (!rawData) {
+        renderTable([]);
+        return;
+      }
+
+      const list = Object.keys(rawData).map(key => ({ id: key, ...rawData[key] }));
+      list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+      filteredList = list.filter(c => {
+        const hay = normalizeText(`${c.empresa} ${c.ruc} ${c.ciudad} ${c.contacto}`);
+        if (q && !hay.includes(q)) return false;
+        if (fEstado && c.estadoActual !== fEstado) return false;
+        if (fResultado && (c.resultado || '') !== fResultado) return false;
+        if (fTipo && (c.tipoRegistro || 'Prospecto') !== fTipo) return false;
+
+        const respVal = normalizeText(c.responsable || '');
+        if (fResp && !respVal.includes(fResp)) return false;
+        if (fMine === 'si') {
+          if (!myName) return false;
+          if (!respVal || !respVal.includes(myName)) return false;
+        }
+
+        const hasAlarm = !!c.fechaAlarma;
+        if (fAlarma === 'con' && !hasAlarm) return false;
+        if (fAlarma === 'sin' && hasAlarm) return false;
+
+        return true;
+      });
+
+      renderTable(filteredList);
+    }
+
+    function updateKpis(data) {
+      const list = data ? Object.values(data) : [];
+      const total = list.length;
+      const sinResp = list.filter(x => (x.estadoActual || '').includes('Sin respuesta')).length;
+      const interesados = list.filter(x => (x.estadoActual || '').includes('Interesado')).length;
+      const evaluacion = list.filter(x => (x.estadoActual || '').includes('En evaluación')).length;
+      const propuesta = list.filter(x => (x.resultado || '').includes('Propuesta enviada')).length;
+      const conAlarma = list.filter(x => !!x.fechaAlarma).length;
+
+      document.getElementById('kpiTotal').innerText = total;
+      document.getElementById('kpiSinRespuesta').innerText = sinResp;
+      document.getElementById('kpiInteresados').innerText = interesados;
+      document.getElementById('kpiEvaluacion').innerText = evaluacion;
+      document.getElementById('kpiPropuesta').innerText = propuesta;
+      document.getElementById('kpiAlarma').innerText = conAlarma;
+    }
+
+    function formatDate(d) {
+      if (!d) return '-';
+      try {
+        // d puede ser YYYY-MM-DD o datetime
+        const dt = new Date(d);
+        if (String(d).length === 10) return dt.toLocaleDateString();
+        return dt.toLocaleString();
+      } catch {
+        return d;
+      }
+    }
+
+    function renderTable(list) {
+      const tbody = document.querySelector('#clientsTable tbody');
+      tbody.innerHTML = '';
+
+      if (!list || list.length === 0) return;
+
+      list.forEach(c => {
+        const row = tbody.insertRow();
+
+        const rucHtml = c.ruc ? `<br><small style="color:#666">RUC: ${c.ruc}</small>` : '';
+        const city = c.ciudad ? `<br><small>${c.ciudad}</small>` : '';
+
+        const alarmHtml = c.fechaAlarma ? `🔔 <small style="color:var(--danger)">${formatDate(c.fechaAlarma)}</small>` : '-';
+        const nextContact = c.proximoContacto ? formatDate(c.proximoContacto) : '-';
+
+        row.innerHTML = `
+          <td>
+            <div class="action-bar">
+              <button class="icon-btn b-wa" title="WhatsApp" onclick="openWhatsApp('${c.telefono || ''}','${escapeForJs(c.empresa || '')}')">📩</button>
+              <button class="icon-btn b-call" title="Llamar" onclick="callPhone('${c.telefono || ''}')">📞</button>
+              <button class="icon-btn b-cal" title="Agendar" onclick="openCalendar('${c.id}')">📅</button>
+              <button class="icon-btn b-edit" title="Editar" onclick="loadForEdit('${c.id}')">✏️</button>
+              <button class="icon-btn b-hist" title="Historial" onclick="showHistory('${c.id}')">📜</button>
+              <button class="icon-btn b-del" title="Eliminar" onclick="deleteClient('${c.id}')">🗑️</button>
+            </div>
+          </td>
+          <td><strong>${escapeHtml(c.empresa || '')}</strong>${rucHtml}${city}</td>
+          <td><span class="pill">${escapeHtml(c.tipoRegistro || 'Prospecto')}</span></td>
+          <td>${escapeHtml(c.responsable || '-')}</td>
+          <td>${escapeHtml(c.estadoActual || '-')}</td>
+          <td>${escapeHtml(c.resultado || '-')}</td>
+          <td>${escapeHtml(nextContact)}</td>
+          <td>${alarmHtml}</td>
+        `;
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>'"]/g, (c) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      })[c]);
+    }
+
+    function escapeForJs(str) {
+      return String(str || '').replace(/'/g, "\\'").replace(/\n/g, ' ');
+    }
+
+    // =============================
+    // Acciones rápidas
+    function normalizePhoneForWA(tel) {
+      let t = onlyDigits(tel);
+      // Si su equipo trabaja principalmente en Perú y el número viene sin país,
+      // puede anteponer 51 automáticamente cuando tenga 9 dígitos.
+      if (t.length === 9) t = '51' + t;
+      return t;
+    }
+
+    function openWhatsApp(tel, empresa) {
+      const t = normalizePhoneForWA(tel);
+      if (!t) { alert('⚠️ No hay teléfono registrado.'); return; }
+      const msg = `Buenas tardes. Le saluda Position Technologies.\n\n¿Le parece bien si coordinamos una breve reunión para explicarle el monitoreo vehicular según su necesidad?`;
+      const url = `https://wa.me/${t}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+    }
+
+    function callPhone(tel) {
+      const t = onlyDigits(tel);
+      if (!t) { alert('⚠️ No hay teléfono registrado.'); return; }
+      window.location.href = `tel:${t}`;
+    }
+
+    function openCalendar(id) {
+      // Crea un evento rápido con Google Calendar (link público)
+      db.ref('clientes/' + id).once('value').then(snapshot => {
+        const c = snapshot.val() || {};
+        const title = `Reunión - ${c.empresa || 'Cliente'}`;
+        const details = `Contacto: ${c.contacto || '-'}\nTel: ${c.telefono || '-'}\nEstado: ${c.estadoActual || '-'}\nPróximo paso: ${c.proximoPaso || '-'}\nDetalle: ${c.detallePaso || '-'}\n`;
+
+        // Fecha sugerida: próximo contacto o mañana 10:00
+        let start = new Date();
+        if (c.proximoContacto) {
+          start = new Date(c.proximoContacto + 'T10:00:00');
+        } else {
+          start.setDate(start.getDate() + 1);
+          start.setHours(10, 0, 0, 0);
+        }
+        const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+        const fmt = (d) => {
+          const pad = (n) => String(n).padStart(2, '0');
+          return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+        };
+
+        const dates = `${fmt(start)}/${fmt(end)}`;
+        const gc = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&details=${encodeURIComponent(details)}&dates=${dates}`;
+        window.open(gc, '_blank');
+      });
+    }
+
+    // =============================
+    // Editar / Historial
+    function loadForEdit(id) {
+      db.ref('clientes/' + id).once('value').then((snapshot) => {
+        const c = snapshot.val();
+        if (!c) return;
+
+        document.getElementById('clientId').value = id;
+
+        document.getElementById('ruc').value = c.ruc || '';
+        lastRuc = onlyDigits(document.getElementById('ruc').value);
+        document.getElementById('empresa').value = c.empresa || '';
+        document.getElementById('direccion').value = c.direccion || '';
+        document.getElementById('contacto').value = c.contacto || '';
+        document.getElementById('cargo').value = c.cargo || '';
+        document.getElementById('telefono').value = c.telefono || '';
+        document.getElementById('ciudad').value = c.ciudad || '';
+
+        document.getElementById('rubro').value = c.rubro || '';
+        document.getElementById('cantidad').value = c.cantidad || '';
+        document.getElementById('tipoFlota').value = c.tipoFlota || 'Camión';
+        document.getElementById('tieneMonitoreo').value = c.tieneMonitoreo || 'No';
+        document.getElementById('proveedorActual').value = c.proveedorActual || '';
+        document.getElementById('incomodidadProveedor').value = c.incomodidadProveedor || '';
+        toggleProveedorFields();
+
+        document.getElementById('tipoRegistro').value = c.tipoRegistro || 'Prospecto';
+        document.getElementById('responsable').value = c.responsable || '';
+        document.getElementById('estadoActual').value = c.estadoActual || '⚪ Sin respuesta';
+        document.getElementById('resultado').value = c.resultado || '⏳ Pendiente';
+
+        // Al editar: las observaciones se agregan como nueva nota; no sobreescribir histórico
+        document.getElementById('observaciones').value = '';
+        document.getElementById('observaciones').placeholder = '➡️ Nueva nota para el historial...';
+        document.getElementById('fechaAlarma').value = '';
+
+        document.getElementById('proximoPaso').value = c.proximoPaso || '';
+        document.getElementById('proximoContacto').value = c.proximoContacto || '';
+        document.getElementById('detallePaso').value = c.detallePaso || '';
+
+        document.getElementById('obsResultado').value = c.obsResultado || '';
+
+        document.getElementById('btnMain').innerText = '🔄 ACTUALIZAR';
+        document.getElementById('btnMain').style.backgroundColor = '#e67e22';
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    // =============================
+    // Export CSV (lo que ve en la tabla)
+    function exportCSV() {
+      const rows = (filteredList || []).map(c => {
+        return {
+          tipo: c.tipoRegistro || 'Prospecto',
+          empresa: c.empresa || '',
+          ruc: c.ruc || '',
+          contacto: c.contacto || '',
+          telefono: c.telefono || '',
+          ciudad: c.ciudad || '',
+          unidades: c.cantidad || '',
+          tieneMonitoreo: c.tieneMonitoreo || '',
+          proveedorActual: c.proveedorActual || '',
+          incomodidadProveedor: c.incomodidadProveedor || '',
+          estado: c.estadoActual || '',
+          proximoPaso: c.proximoPaso || '',
+          proximoContacto: c.proximoContacto || '',
+          resultado: c.resultado || '',
+          obsResultado: c.obsResultado || '',
+          fechaAlarma: c.fechaAlarma || '',
+          responsable: c.responsable || ''
+        };
+      });
+
+      if (rows.length === 0) {
+        alert('No hay registros para exportar con los filtros actuales.');
+        return;
+      }
+
+      const headers = Object.keys(rows[0]);
+      const escapeCsv = (v) => {
+        const s = String(v ?? '');
+        const needs = /[",\n\r;]/.test(s);
+        const ss = s.replace(/"/g, '""');
+        return needs ? `"${ss}"` : ss;
+      };
+
+      const lines = [];
+      lines.push(headers.join(';'));
+      rows.forEach(r => {
+        lines.push(headers.map(h => escapeCsv(r[h])).join(';'));
+      });
+
+      const blob = new Blob(["\ufeff" + lines.join("\n")], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `crm_position_export_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function showHistory(id) {
+      db.ref('clientes/' + id).once('value').then((snapshot) => {
+        const c = snapshot.val();
+        const container = document.getElementById('timelineContainer');
+        container.innerHTML = '';
+
+        const hist = (c && c.historial) ? c.historial : [];
+        if (hist.length === 0) {
+          container.innerHTML = '<p>Sin historial.</p>';
+        } else {
+          [...hist].reverse().forEach(h => {
+            const extra = [];
+            if (h.proximoPaso) extra.push(`<div>➡️ <strong>Próximo paso:</strong> ${escapeHtml(h.proximoPaso)}</div>`);
+            if (h.proximoContacto) extra.push(`<div>📅 <strong>Próximo contacto:</strong> ${escapeHtml(formatDate(h.proximoContacto))}</div>`);
+            if (h.detallePaso) extra.push(`<div>📝 <strong>Detalle:</strong> ${escapeHtml(h.detallePaso)}</div>`);
+            if (h.alarma) extra.push(`<div style="color:var(--danger)">🔔 <strong>Alarma:</strong> ${escapeHtml(formatDate(h.alarma))}</div>`);
+            if (h.resultado) extra.push(`<div>📌 <strong>Resultado:</strong> ${escapeHtml(h.resultado)}</div>`);
+            if (h.responsable) extra.push(`<div>👤 <strong>Responsable:</strong> ${escapeHtml(h.responsable)}</div>`);
+
+            container.innerHTML += `
+              <div class="timeline-item">
+                <div style="font-size:0.82em; color:#888">${escapeHtml(h.fecha || '')}</div>
+                <div style="font-weight:900; color:var(--primary)">${escapeHtml(h.estado || '')}</div>
+                <div>${escapeHtml(h.obs || '')}</div>
+                ${extra.join('')}
+              </div>
+            `;
+          });
+        }
+
+        document.getElementById('historyModal').style.display = 'block';
+      });
+    }
+
+    function closeHistory() {
+      document.getElementById('historyModal').style.display = 'none';
+    }
+
+    function deleteClient(id) {
+      if (confirm('¿Desea eliminar este registro?')) {
+        db.ref('clientes/' + id).remove();
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('clientForm').reset();
+      document.getElementById('clientId').value = '';
+      document.getElementById('btnMain').innerText = '💾 GUARDAR EN LA NUBE';
+      document.getElementById('btnMain').style.backgroundColor = '';
+      document.getElementById('observaciones').placeholder = 'Nota del día...';
+      toggleProveedorFields();
+    }
+
+    // =============================
+    // Audio / Alarma
+    function enableAudio() {
+      if (!audioCtx) audioCtx = new AudioContext();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(0);
+      osc.stop(0.1);
+      document.getElementById('btnEnableAudio').style.display = 'none';
+      alert('🔊 Audio activado');
+    }
+
+    function playAlarmSound() {
+      if (!audioCtx) return;
+      oscillator = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+
+      for (let i = 0; i < 15; i++) {
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime + i);
+        gain.gain.setValueAtTime(0, audioCtx.currentTime + i + 0.5);
+      }
+
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+      oscillator.start();
+    }
+
+    function checkAlarms(data) {
+      if (!data) return;
+      const now = new Date();
+
+      Object.keys(data).forEach(key => {
+        const c = data[key];
+        if (c.fechaAlarma && !c.alarmaSonada) {
+          const alarmTime = new Date(c.fechaAlarma);
+          const diff = (now - alarmTime) / 1000 / 60;
+          if (diff >= 0 && diff < 30) {
+            triggerAlarm(c.empresa, c.proximoPaso || '');
+            db.ref('clientes/' + key).update({ alarmaSonada: true });
+          }
+        }
+      });
+    }
+
+    function triggerAlarm(nombre, hint) {
+      playAlarmSound();
+      document.getElementById('alarmMessage').innerText = nombre || 'Cliente';
+      document.getElementById('alarmHint').innerText = hint ? `Próximo paso: ${hint}` : '';
+      document.getElementById('activeAlarmModal').style.display = 'flex';
+    }
+
+    function stopAlarm() {
+      if (oscillator) {
+        try { oscillator.stop(); } catch {}
+        oscillator.disconnect();
+        oscillator = null;
+      }
+      document.getElementById('activeAlarmModal').style.display = 'none';
+    }
+function copiarMensajeWA() {
+  const empresa = document.getElementById('empresa').value.trim() || 'su empresa';
+
+  const mensaje = `Buenas tardes.
+
+Le saluda Position Technologies.
+
+Nos especializamos en plataformas de monitoreo y control vehicular por GPS, configuradas según la necesidad real de cada operación.
+
+¿Le parecería bien coordinar una breve reunión (virtual o presencial) para explicarle el servicio de manera clara y sin compromiso?
+
+Quedo atento.`;
+
+  navigator.clipboard.writeText(mensaje).then(() => {
+    alert('✅ Mensaje copiado. Puede pegarlo directamente en WhatsApp.');
+  });
+}
+function onRucTyping() {
+  const current = onlyDigits(document.getElementById('ruc').value);
+  const empresaCargada = document.getElementById('empresa').value.trim().length > 0;
+
+  // Si ya había un RUC confirmado y se empieza a escribir otro distinto
+  if (lastRuc && empresaCargada && current && !lastRuc.startsWith(current)) {
+    document.getElementById('empresa').value = '';
+    document.getElementById('direccion').value = '';
+    document.getElementById('ciudad').value = '';
+  }
+
+  if (current.length === 11) lastRuc = current;
+  if (current.length === 0) lastRuc = '';
+}
+
+  </script>
+</body>
+</html>
