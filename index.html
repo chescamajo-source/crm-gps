@@ -879,9 +879,8 @@
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-// Apps Script WebApp (consulta RUC vía Decolecta)
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzKGvf-CFK6csx68-xYJCAAHCAmwsuWvpJpuRgZGWolyknkvvw6ww4fgS6E0chnt3SO/exec";
 
+    // Apps Script WebApp (consulta RUC vía Decolecta)
     // Sistema
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx;
