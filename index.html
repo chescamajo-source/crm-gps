@@ -71,7 +71,38 @@
       gap: 14px;
     }
 
-    .full-width {
+    
+
+    /* ===== Ajuste sección 1: 4 columnas fijas (RUC / Empresa / Dirección / Contacto) ===== */
+    .form-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(220px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+
+    @media (max-width: 1100px) {
+      .form-grid-4 { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+    }
+    @media (max-width: 650px) {
+      .form-grid-4 { grid-template-columns: 1fr; }
+    }
+
+    .ruc-box input {
+      max-width: none !important;
+    }
+
+    .ruc-control {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .ruc-control button {
+      width: auto;
+      white-space: nowrap;
+    }
+.full-width {
       grid-column: 1 / -1;
     }
 
@@ -186,19 +217,49 @@
     /* Filtros */
     .filters {
       display: grid;
-      grid-template-columns: 2fr repeat(4, 1fr);
+      grid-template-columns: repeat(6, minmax(180px, 1fr));
       gap: 10px;
       margin: 15px 0;
       align-items: end;
     }
 
-    @media (max-width: 900px) {
-      .filters {
-        grid-template-columns: 1fr;
-      }
+    /* Desktop: distribución alineada (2 filas) */
+    .filters .f-search { grid-column: 1 / span 2; }
+    .filters .f-estado { grid-column: 3; }
+    .filters .f-resultado { grid-column: 4; }
+     .filters .f-tipo { grid-column: 5; }
+    .filters .f-alarma { grid-column: 6; }
+     /* cae a siguiente fila si no hay espacio */
+
+    .filters .f-responsable { grid-column: 1 / span 2; }
+    .filters .f-mine { grid-column: 3; }
+    .filters .f-myname { grid-column: 4; }
+    .filters .f-export { grid-column: 5; }
+
+    /* Responsivo */
+    @media (max-width: 1200px) {
+      .filters { grid-template-columns: repeat(3, minmax(220px, 1fr)); }
+      .filters .f-search { grid-column: 1 / -1; }
+      .filters .f-responsable { grid-column: 1 / -1; }
+    }
+    @media (max-width: 760px) {
+      .filters { grid-template-columns: 1fr; }
+      .filters .f-search,
+      .filters .f-estado,
+      .filters .f-resultado,
+      .filters .f-tipo,
+      .filters .f-alarma,
+      .filters .f-responsable,
+      .filters .f-mine,
+      .filters .f-myname,
+      .filters .f-export { grid-column: 1 / -1; }
     }
 
-    /* Tabla */
+    /* Ajuste visual: alturas consistentes y botones a ancho completo dentro de filtros */
+    .filters input, .filters select { height: 40px; }
+    .filters .btn-secondary { width: 100%; }
+
+/* Tabla */
     .table-responsive {
       overflow-x: auto;
       margin-top: 12px;
@@ -347,7 +408,140 @@
     }
 
     .hide { display: none; }
-  </style>
+  
+
+
+/* ===== Filtros: títulos alineados y layout estable ===== */
+.filters {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+  grid-template-areas:
+    "search estado resultado tipo alarma"
+    "responsable solomis minombre guardar exportar";
+  column-gap: 14px;
+  row-gap: 18px;
+  align-items: start; /* CLAVE: alinea títulos arriba */
+}
+
+/* áreas */
+.filters .f-search { grid-area: search; }
+.filters .f-estado { grid-area: estado; }
+.filters .f-resultado { grid-area: resultado; }
+.filters .f-tipo { grid-area: tipo; }
+.filters .f-alarma { grid-area: alarma; }
+.filters .f-responsable { grid-area: responsable; }
+.filters .f-solo { grid-area: solomis; }
+.filters .f-mi { grid-area: minombre; }
+.filters .f-save { grid-area: guardar; align-self: end; }
+.filters .f-exportar { grid-area: exportar; }
+
+/* títulos alineados */
+.filters label {
+  display: block;
+  height: 18px;           /* fuerza misma altura */
+  margin-bottom: 6px;
+  font-weight: 600;
+  line-height: 18px;
+
+  font-weight: 700;
+}
+
+/* controles */
+.filters input,
+.filters select {
+  width: 100%;
+  height: 38px;
+  box-sizing: border-box;
+}
+
+/* botones */
+.filters .btn-primary,
+.filters .btn-secondary {
+  width: 100%;
+  height: 38px;
+  margin: 0;
+}
+
+/* textos de ayuda */
+.filters small,
+.filters .hint {
+  display: block;
+  margin-top: 6px;
+  line-height: 1.2;
+}
+
+/* responsive */
+@media (max-width: 1100px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "search search"
+      "estado resultado"
+      "tipo alarma"
+      "responsable responsable"
+      "solomis minombre"
+      "guardar exportar";
+  }
+}
+
+@media (max-width: 650px) {
+  .filters {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "search"
+      "estado"
+      "resultado"
+      "tipo"
+      "alarma"
+      "responsable"
+      "solomis"
+      "minombre"
+      "guardar"
+      "exportar";
+  }
+}
+
+
+/* ===== Acciones superiores (Exportar + Guardar) ===== */
+.top-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.top-actions .btn-secondary,
+.top-actions .btn-primary {
+  height: 38px;
+}
+
+
+/* ===== Acciones superiores derecha ===== */
+.header-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.header-actions .btn-secondary,
+.header-actions .btn-clear {
+  height: 38px;
+}
+
+
+/* ===== Acciones superiores derecha ===== */
+.header-actions{
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+  align-items:center;
+  margin: 8px 0 14px;
+}
+.header-actions button{
+  width:auto;
+  height:38px;
+}
+</style>
 </head>
 <body>
   <div class="container">
@@ -355,69 +549,78 @@
     <button id="btnEnableAudio" class="btn-audio" onclick="enableAudio()">🔊 CLIC AQUÍ PARA ACTIVAR ALERTAS</button>
 
     <h1>☁️ CRM GPS (Prospectos + Clientes)</h1>
-<div style="display:flex; justify-content:flex-end; margin: 8px 0 14px;">
-  <button type="button" class="btn-secondary" onclick="resetForm()" style="width:auto;">
-    🧹 Limpiar formulario
-  </button>
+<div class="header-actions">
+  <button type="button" class="btn-secondary" onclick="exportCSV()">⬇️ Exportar CSV</button>
+  <button type="button" class="btn-secondary" onclick="resetForm()">🧹 Limpiar formulario</button>
 </div>
 
 
     <form id="clientForm">
       <input type="hidden" id="clientId" />
 
+      
       <fieldset>
         <legend>🟢 1. Datos Generales (RUC)</legend>
-        <div class="form-grid">
-          <div class="row-flex" style="grid-column: span 2;">
-            <div style="flex: 1;">
-              <label>RUC (11 dígitos):</label>
+
+        <div class="form-grid-4">
+          <!-- Col 1: RUC + botón Buscar -->
+          <div class="ruc-box">
+            <label>RUC (11 dígitos):</label>
+
+            <div class="ruc-control">
               <input
-  type="text"
-  id="ruc"
-  inputmode="numeric"
-  placeholder="Escriba el RUC aquí"
-  oninput="onRucTyping()"
-  style="width:100%; max-width:320px; font-weight:800; letter-spacing:2px;"
-
-/>
-
-              <div class="hint">Tip: puede escribir y luego presionar “Buscar Datos”.</div>
+                type="text"
+                id="ruc"
+                inputmode="numeric"
+                placeholder="Escriba el RUC aquí"
+                oninput="onRucTyping()"
+                style="font-weight:800; letter-spacing:2px;"
+              />
+              <button type="button" class="btn-sunat" id="btnSunat" onclick="consultarRUC()">🔍 Buscar Datos</button>
             </div>
-            <button type="button" class="btn-sunat" id="btnSunat" onclick="consultarRUC()">🔍 Buscar Datos</button>
-	    <button type="button" class="btn-secondary" onclick="copiarMensajeWA()" style="width:auto; white-space:nowrap;">
-            📋 Copiar mensaje WhatsApp
-            </button>
 
-
+            <div class="hint">Tip: puede escribir y luego presionar “Buscar Datos”.</div>
           </div>
 
+          <!-- Col 2 -->
           <div>
             <label>Empresa (Razón Social):</label>
             <input type="text" id="empresa" required placeholder="Se llenará automáticamente si consulta RUC..." />
           </div>
+
+          <!-- Col 3 -->
           <div>
             <label>Dirección Fiscal:</label>
             <input type="text" id="direccion" placeholder="Se llenará automáticamente si consulta RUC..." />
           </div>
 
+          <!-- Col 4 -->
           <div>
             <label>Contacto:</label>
             <input type="text" id="contacto" placeholder="Nombre y apellido" />
           </div>
+
+          <!-- Fila 2 -->
           <div>
             <label>Cargo:</label>
             <input type="text" id="cargo" placeholder="Ej.: Jefe de Operaciones" />
           </div>
+
           <div>
             <label>Teléfono / WhatsApp:</label>
             <input type="text" id="telefono" placeholder="Solo números" />
           </div>
+
           <div>
             <label>Ciudad:</label>
             <input type="text" id="ciudad" placeholder="Ej.: Lima" />
           </div>
+
+          <!-- Relleno para cuadrar 4 columnas -->
+          <div></div>
         </div>
       </fieldset>
+
 
       <fieldset>
         <legend>🔵 2. Información de Flota</legend>
@@ -522,7 +725,7 @@
       <fieldset>
         <legend>🟣 5. Resultado</legend>
         <div class="form-grid">
-          <div>
+          <div class="f-resultado">
             <label>Resultado:</label>
             <select id="resultado">
               <option value="⏳ Pendiente">⏳ Pendiente</option>
@@ -554,11 +757,11 @@
 
     <!-- Filtros -->
     <div class="filters">
-      <div>
+      <div class="f-item f-search f-search">
         <label>Buscar (empresa / RUC / ciudad / contacto):</label>
         <input type="text" id="searchText" placeholder="Escriba para filtrar..." oninput="applyFilters()" />
       </div>
-      <div>
+      <div class="f-item f-estado f-estado">
         <label>Estado:</label>
         <select id="filterEstado" onchange="applyFilters()">
           <option value="">Todos</option>
@@ -570,7 +773,7 @@
           <option value="🏆 CLIENTE CONCRETADO">🏆 CLIENTE CONCRETADO</option>
         </select>
       </div>
-      <div>
+      <div class="f-item f-resultado">
         <label>Resultado:</label>
         <select id="filterResultado" onchange="applyFilters()">
           <option value="">Todos</option>
@@ -579,7 +782,7 @@
           <option value="❌ Cerrado/No">❌ Cerrado/No</option>
         </select>
       </div>
-      <div>
+      <div class="f-item f-tipo f-tipo">
         <label>Tipo:</label>
         <select id="filterTipo" onchange="applyFilters()">
           <option value="">Todos</option>
@@ -587,7 +790,7 @@
           <option value="Cliente activo">Cliente activo</option>
         </select>
       </div>
-      <div>
+      <div class="f-item f-alarma f-alarma">
         <label>Alarma:</label>
         <select id="filterAlarma" onchange="applyFilters()">
           <option value="">Todas</option>
@@ -596,12 +799,12 @@
         </select>
       </div>
 
-      <div>
+      <div class="f-item f-responsable f-responsable">
         <label>Responsable (filtro):</label>
         <input type="text" id="filterResponsable" placeholder="Ej.: María / Juan" oninput="applyFilters()" />
       </div>
 
-      <div>
+      <div class="f-item f-mine f-solo">
         <label>Solo mis registros:</label>
         <select id="filterMine" onchange="applyFilters()">
           <option value="">No</option>
@@ -610,16 +813,17 @@
         <div class="small">Tip: defina su nombre en “Mi nombre”.</div>
       </div>
 
-      <div>
+      <div class="f-item f-myname f-mi">
         <label>Mi nombre (equipo):</label>
         <input type="text" id="myName" placeholder="Su nombre" />
-        <button type="button" class="btn-secondary" style="margin-top:8px" onclick="saveMyName()">💾 Guardar</button>
       </div>
 
-      <div>
-        <label>Exportar:</label>
-        <button type="button" class="btn-secondary" onclick="exportCSV()">⬇️ Exportar CSV (filtrado)</button>
-        <div class="small">Exporta exactamente lo que está viendo en la tabla.</div>
+      <div class="f-item f-save">
+        <label>&nbsp;</label>
+        <button type="button" class="btn-secondary" onclick="saveMyName()">💾 Guardar</button>
+      </div>
+
+      
       </div>
     </div>
 
@@ -798,7 +1002,7 @@ document.getElementById('ciudad').value =
   };
 
   const doFetch = async () => {
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyk4n-zFzsd13FIBHbno-lw09sot_OVItnXa7G8Ttg-EZVXFLn3OxOmVX3UKGJqsXNT/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyk4n-zFzsd13FlBHbno-lw09sot_OVItnXa7G8Ttg-EZVXFLn3OxOmVX3UKGJqsXNT/exec";
 
 const resp = await fetch(`${GAS_URL}?ruc=${encodeURIComponent(ruc)}`);
 
