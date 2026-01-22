@@ -947,7 +947,7 @@
     }
 
     // =============================
-// SUNAT RUC (via Netlify Function - Decolecta)
+// RUC (Apps Script WebApp → Decolecta)
 async function consultarRUC() {
   const ruc = onlyDigits(document.getElementById('ruc').value);
   const btn = document.getElementById('btnSunat');
@@ -1002,8 +1002,6 @@ document.getElementById('ciudad').value =
   };
 
   const doFetch = async () => {
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzKGvf-CFK6csx68-xYJCAAHCAmwsuWvpJpuRgZGWolyknkvvw6ww4fgS6E0chnt3SO/exec";
-
 const resp = await fetch(`${GAS_URL}?ruc=${encodeURIComponent(ruc)}`);
 
     const json = await resp.json().catch(() => ({ ok: false, error: 'Respuesta inválida del servidor.' }));
